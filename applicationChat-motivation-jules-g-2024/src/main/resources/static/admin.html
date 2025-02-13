@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Admin - Conversations du chat de vinci</title>
+  </head>
+  <body class="bg-gray-100 flex flex-col h-screen">
+    <div class="flex-grow overflow-y-auto p-6 mt-16 flex">
+      <div class="w-1/4 border-r p-4">
+                <a href="/" class="block text-center mt-4 text-blue-500"
+          >Retour au Chat</a
+        >
+        <h2 class="text-lg font-bold mb-4">Utilisateurs</h2>
+        <div id="userList"></div>
+      </div>
+      <div class="w-3/4 p-4">
+        <h1 class="text-xl font-bold text-center mb-4">
+          Liste des Conversation
+        </h1>
+        <input
+          id="userSearch"
+          type="text"
+          placeholder="Nom de l'utilisateur"
+          class="w-full p-2 border rounded mb-2"
+        />
+        <button
+          onclick="fetchUserConversations()"
+          class="w-full bg-blue-500 text-white p-2 rounded"
+        >
+          Recherche
+        </button>
+        <div id="conversationList" class="mt-4"></div>
+          <h2 class="text-lg font-bold mb-4">Ajouter une citation</h2>
+          <input
+            id="quoteText"
+            type="text"
+            placeholder="Votre citation"
+            class="w-full p-2 border rounded mb-2"
+          />
+          <button
+            onclick="addQuote()"
+            class="w-full bg-green-500 text-white p-2 rounded"
+          >
+            Ajouter
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function fetchUserConversations() {
+        const userName = document.getElementById("userSearch").value
+
+        fetch("http://localhost:9090/api/conversations/user/" + userName)
+          .then((response) => response.json())
+          .then((data) => {
+            const conversationList = document.getElementById("conversationList")
+            conversationList.innerHTML = ""
+            data.forEach((conv) => {
+              const messageApi = JSON.parse(conv.responseMessage)
+              const message = messageApi.message
+              const date = new Date(conv.timestamp).toLocaleString()
+              conversationList.innerHTML += `<p><strong>${conv.userName}:</strong> ${conv.userMessage} <br><em>${message}</em> <br><small>${date}</small></p><hr>`
+            })
+          })
+      }
+
+      function fetchUserList() {
+        fetch("http://localhost:9090/api/conversations/users")
+          .then((response) => response.json())
+          .then((data) => {
+            const userList = document.getElementById("userList")
+            userList.innerHTML = ""
+            data.forEach((user) => {
+              userList.innerHTML += `<p class="p-2 m-2 border hover:bg-gray-300" onclick="fetchUserConversationsByName('${user}')">${user}</p>`
+            })
+          })
+      }
+
+      function fetchUserConversationsByName(userName) {
+        document.getElementById("userSearch").value = userName
+        fetchUserConversations()
+      }
+
+      function addQuote() {
+        const quoteText = document.getElementById("quoteText").value
+
+        fetch("http://localhost:8080/api/quotes/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: quoteText }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert("Citation ajoutée avec succès!")
+            document.getElementById("quoteText").value = ""
+          })
+      }
+
+      window.onload = fetchUserList
+    </script>
+  </body>
+</html>
