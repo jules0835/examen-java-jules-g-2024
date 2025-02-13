@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Chat de vinci</title>
+    <style>
+      #header {
+        transition: background-color 0.5s;
+      }
+      #header.red {
+        background-color: red;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-900 flex flex-col h-screen">
+    <header class="fixed top-0 left-0 right-0 flex justify-center items-center">
+      <img src="logo.png" alt="Logo" id="header" class="h-20 bg-gray-700" />
+      <div class="absolute right-0 p-4">
+        <a href="/admin.html" class="text-white"> Go to admin </a>
+      </div>
+    </header>
+    <div class="flex-grow overflow-y-auto p-6 mt-16">
+      <h1 class="text-xl font-bold text-center mb-4 text-white">
+        Chat de vinci, votre motivateur d'employé !
+      </h1>
+      <div id="chatContainer" class="space-y-4"></div>
+    </div>
+    <div class="bg-gray-800 p-4">
+      <input
+        id="userName"
+        type="text"
+        placeholder="Votre nom"
+        class="w-full p-2 border rounded mb-2"
+      />
+      <input
+        id="userMessage"
+        type="text"
+        placeholder="Votre message"
+        class="w-full p-2 border rounded mb-2"
+      />
+      <button
+        onclick="sendMessage()"
+        class="w-full bg-blue-500 text-white p-2 rounded"
+      >
+        Envoyer
+      </button>
+    </div>
+
+    <script>
+      function sendMessage() {
+        const userName = document.getElementById("userName").value
+        const userMessage = document.getElementById("userMessage").value
+
+        fetch(
+          "http://localhost:9090/api/conversations/new?userName=" +
+            userName +
+            "&userMessage=" +
+            userMessage,
+          {
+            method: "POST",
+          }
+        )
+          .then((response) => response.json())
+          .then((data) => {
+            console.log(data)
+            const messageApi = JSON.parse(data.responseMessage)
+            const message = messageApi.message
+            const chatContainer = document.getElementById("chatContainer")
+            chatContainer.innerHTML += `<div class="flex justify-end"><div class="bg-blue-500 text-white p-2 rounded-lg max-w-xs">${data.userMessage}</div></div>`
+            chatContainer.innerHTML += `<div class="flex justify-start"><div class="bg-gray-700 text-white p-2 rounded-lg max-w-xs">${message}</div></div>`
+
+            const header = document.getElementById("header")
+            header.classList.add("red")
+            setTimeout(() => {
+              header.classList.remove("red")
+            }, 5000)
+          })
+      }
+    </script>
+  </body>
+</html>
